@@ -1,0 +1,26 @@
+stages:
+  # 编译阶段
+  - build
+  # 部署阶段
+  - public
+
+online_deploy:
+  # 手动执行
+  when: manual
+  # 触发分支
+  only:
+    - main
+    - develop
+    - /^hotfix_.+/
+  # 所属的阶段
+  stage: public
+  # tag
+  tags:
+    # 执行的命令
+    - demo-tag
+  script:
+    # 自行定制 清理容器 关闭上一个运行的容器等操作
+    - export VERSION=$(date '+%Y-%m-%d-%H-%M-%S')_${CI_COMMIT_SHORT_SHA}
+    - docker build -t monitoring:${VERSION} -f Dockerfile . || echo 'docker build error'
+    # - docker stop monitoring:${VERSION}
+    - docker run -d -p 8080:80 monitoring:${VERSION}
